@@ -1,7 +1,9 @@
 package pg
 
 import (
+	"database/sql"
 	"io/ioutil"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	// postgres dialect
@@ -10,8 +12,11 @@ import (
 )
 
 type Client struct {
-	db     *gorm.DB
-	logger zerolog.Logger
+	db                *gorm.DB
+	logger            zerolog.Logger
+	maxOpenCons       int
+	maxIdleCons       int
+	connectionTimeout time.Duration
 }
 
 // NewClient returns a new Client for DB connection.
@@ -37,6 +42,27 @@ func WithLogger(l zerolog.Logger) ConfigOption {
 	}
 }
 
+// WithMaxConnections configures a max connections to Postgres.
+func WithMaxConnections(n int) ConfigOption {
+	return func(c *Client) {
+		c.maxOpenCons = n
+	}
+}
+
+// WithMaxIdleConnections configures a max idle connections to Postgres.
+func WithMaxIdleConnections(n int) ConfigOption {
+	return func(c *Client) {
+		c.maxIdleCons = n
+	}
+}
+
+// WithConnectionTimeout configures a max connection timeout to Postgres.
+func WithConnectionTimeout(t time.Duration) ConfigOption {
+	return func(c *Client) {
+		c.connectionTimeout = t
+	}
+}
+
 // Open opens PostgreSQL connection.
 func (c *Client) Open(source string) error {
 	var err error
@@ -58,6 +84,9 @@ func (c *Client) Open(source string) error {
 	c.logger.Debug().Msg("connected to db")
 
 	c.db.SingularTable(true)
+	c.db.DB().SetMaxOpenConns(c.maxOpenCons)
+	c.db.DB().SetMaxIdleConns(c.maxIdleCons)
+	c.db.DB().SetConnMaxLifetime(c.connectionTimeout)
 
 	return nil
 }
@@ -72,4 +101,9 @@ func (c *Client) Close() error {
 func (c *Client) Schema() error {
 	_, err := c.db.DB().Exec(Schema)
 	return err
+}
+
+// Stats returns database statistics.
+func (c *Client) Stats() sql.DBStats {
+	return c.db.DB().Stats()
 }

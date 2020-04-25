@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -32,7 +33,13 @@ func main() {
 			"user=auth password=auth host=localhost port=5432 dbname=auth_test connect_timeout=3 sslmode=disable",
 			"Postgresql connection string",
 		)
+		fs.Int("pg.max-cons", 5, "Max connections to Postgres.")
+		fs.Int("pg.max-idle-cons", 2, "Max idle connections to Postgres.")
+		fs.Duration("pg.connection-timeout", time.Minute, "Max connection timeout to Postgres.")
+
 		fs.String("http-addr", ":8080", "Address to listen for System API")
+
+		fs.String("log-lvl", "info", "Log level.")
 	}
 
 	if err = viper.BindPFlags(fs); err != nil {
@@ -40,8 +47,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	logLvl, err := zerolog.ParseLevel(viper.GetString("log-lvl"))
+	if err != nil {
+		logger.Err(err).Msg("Couldn't parse log lvl.")
+	} else {
+		logger.Info().Msgf("Set log level: %s", viper.GetString("log-lvl"))
+		logger = logger.Level(logLvl)
+	}
+
 	pgClient := pg.NewClient(
 		pg.WithLogger(logger),
+		pg.WithMaxConnections(viper.GetInt("pg.max-cons")),
+		pg.WithMaxIdleConnections(viper.GetInt("pg.max-idle-cons")),
+		pg.WithConnectionTimeout(viper.GetDuration("pg.connection-timeout")),
 	)
 	if err = pgClient.Open(viper.GetString("pg.conn-string")); err != nil {
 		logger.Fatal().Err(err).Msg("db connection failed")
@@ -97,6 +115,21 @@ func main() {
 			return apiServer.ListenAndServe()
 		}, func(err error) {
 			logger.Info().Err(err).Msg("server was stopped")
+		})
+	}
+	{
+		g.Add(func() error {
+			for {
+				select {
+				case <-ctx.Done():
+					return nil
+				case <-time.After(5 * time.Second):
+					b, _ := json.Marshal(pgClient.Stats())
+					logger.Debug().Msgf("pgStats :%v", string(b))
+				}
+			}
+		}, func(err error) {
+
 		})
 	}
 
