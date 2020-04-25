@@ -9,12 +9,14 @@ import (
 
 const tokenLength = 128
 
+// CredentialService is a service that works with credentials.
 type CredentialService struct {
 	credentialRepository auth.CredentialRepository
 	nowFn                func() time.Time
 	generatorFn          func(n int) (string, error)
 }
 
+// NewCredentialService creates a CredentialService.
 func NewCredentialService(
 	r auth.CredentialRepository,
 	nowFn func() time.Time,
@@ -27,12 +29,23 @@ func NewCredentialService(
 	}
 }
 
+// ByToken retrieves a Credential by token.
 func (c *CredentialService) ByToken(ctx context.Context, token string) (auth.Credential, error) {
 	return c.credentialRepository.ByToken(ctx, token)
 }
 
+// Register creates a new credential.
 func (c *CredentialService) Register(ctx context.Context, cred *auth.Credential) error {
 	var err error
+
+	_, err = c.credentialRepository.ByEmail(ctx, cred.Email)
+	if err == nil {
+		return auth.NewError(auth.ErrEmailExists, "User with this email already exists.")
+	}
+
+	if auth.ErrorCode(err) != auth.ErrCredNotFound {
+		return auth.WrapError(err, auth.ErrInternal, "Register failed")
+	}
 
 	cred.Password, err = hashAndSalt(cred.Password)
 	if err != nil {
@@ -50,6 +63,7 @@ func (c *CredentialService) Register(ctx context.Context, cred *auth.Credential)
 	return c.credentialRepository.Create(ctx, cred)
 }
 
+// Auth checks user's email/pass.
 func (c *CredentialService) Auth(ctx context.Context, email, plainPassword string) (auth.Credential, error) {
 	cred, err := c.credentialRepository.ByEmail(ctx, email)
 	if err != nil {

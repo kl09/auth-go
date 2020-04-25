@@ -6,6 +6,9 @@ test:
 lint:
 	golangci-lint run --deadline=5m -v
 
+build:
+	go build ./cmd/api/
+
 up:
 	docker-compose -f docker/docker-compose.yml up -d --build
 

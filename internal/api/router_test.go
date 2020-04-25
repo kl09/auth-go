@@ -121,6 +121,9 @@ func TestUser_Register(t *testing.T) {
 					c.ID = 1
 					return nil
 				},
+				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
+				},
 			},
 		},
 		{
@@ -131,6 +134,24 @@ func TestUser_Register(t *testing.T) {
 			credRep: &mock.CredentialRepository{
 				CreateFn: func(ctx context.Context, c *auth.Credential) error {
 					return errors.New("some error")
+				},
+				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
+				},
+			},
+		},
+		{
+			name:        "user already exists",
+			requestBody: `{"email":"example@example.org","password":"66554433"}`,
+			wantResp:    `{"error":{"code":"email_already_exists","message":"User with this email already exists."}}` + "\n",
+			wantStatus:  http.StatusInternalServerError,
+			credRep: &mock.CredentialRepository{
+				CreateFn: func(ctx context.Context, c *auth.Credential) error {
+					t.Fatal("method shouldn't be called")
+					return nil
+				},
+				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+					return auth.Credential{}, nil
 				},
 			},
 		},
@@ -287,5 +308,48 @@ func TestUser_Auth(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+func Test_404_error(t *testing.T) {
+	h := NewRouter(NewCredentialService(
+		nil,
+		nowFunc,
+		func(n int) (string, error) {
+			return "", nil
+		},
+	)).Handler().Server.Handler
+
+	srv := httptest.NewServer(h)
+	defer srv.Close()
+
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf("%s/bad_url", srv.URL),
+		strings.NewReader(``),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatal("bad status code")
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := `{"error":{"code":"http_404","message":"Not Found"}}` + "\n"
+	if diff := cmp.Diff(string(b), expected); diff != "" {
+		t.Fatal(diff)
 	}
 }

@@ -13,6 +13,7 @@ func generateRandomBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
+// GenerateRandomString generates a random string.
 func GenerateRandomString(n int) (string, error) {
 	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
 

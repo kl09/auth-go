@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -88,10 +89,7 @@ func (r *Router) auth(c echo.Context) error {
 }
 
 func customHTTPErrorHandler(err error, c echo.Context) {
-	c.Logger().Error(err)
-
 	httpStatus := http.StatusInternalServerError
-
 	errResp := struct {
 		Err *auth.Error `json:"error"`
 	}{&auth.Error{
@@ -99,13 +97,23 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 		Message: auth.ErrorMsg(err),
 	}}
 
-	if errC, ok := err.(auth.Error); ok {
-		switch errC.Code {
+	switch errI := err.(type) {
+	case *echo.HTTPError:
+		httpStatus = errI.Code
+		errResp.Err.Code = fmt.Sprintf("http_%d", errI.Code)
+
+		if msg, ok := errI.Message.(string); ok {
+			errResp.Err.Message = msg
+		}
+	case auth.Error:
+		switch errI.Code {
 		case auth.ErrCredNotFound:
 			httpStatus = http.StatusNotFound
 		case auth.ErrAuth:
 			httpStatus = http.StatusUnauthorized
 		}
+	default:
+		c.Logger().Error(err)
 	}
 
 	err = c.JSON(httpStatus, errResp)

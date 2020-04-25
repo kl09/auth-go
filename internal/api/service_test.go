@@ -24,6 +24,9 @@ func TestCredentialService_Register(t *testing.T) {
 			c.ID = 1
 			return nil
 		},
+		ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
+		},
 	},
 		nowFunc,
 		func(n int) (string, error) {

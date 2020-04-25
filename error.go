@@ -12,6 +12,8 @@ const (
 	ErrCredNotFound = "credential_not_found"
 	// ErrAuth is returned when auth is failed.
 	ErrAuth = "auth_failed"
+	// ErrEmailExists is returned when email already exists.
+	ErrEmailExists = "email_already_exists"
 )
 
 // Error represents an error within the context of Quoter service.

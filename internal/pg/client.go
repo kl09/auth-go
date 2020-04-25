@@ -14,9 +14,26 @@ type Client struct {
 	logger zerolog.Logger
 }
 
-func NewClient() *Client {
-	return &Client{
+// NewClient returns a new Client for DB connection.
+func NewClient(options ...ConfigOption) *Client {
+	c := Client{
 		logger: zerolog.New(ioutil.Discard),
+	}
+
+	for _, opt := range options {
+		opt(&c)
+	}
+
+	return &c
+}
+
+// ConfigOption configures the client.
+type ConfigOption func(*Client)
+
+// WithLogger configures a logger to debug interactions with Postgres.
+func WithLogger(l zerolog.Logger) ConfigOption {
+	return func(c *Client) {
+		c.logger = l
 	}
 }
 
