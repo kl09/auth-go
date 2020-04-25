@@ -20,11 +20,13 @@ func NewCredentialRepository(c *Client) *CredentialRepository {
 
 func (c *CredentialRepository) ByToken(ctx context.Context, token string) (auth.Credential, error) {
 	cred := auth.Credential{}
+
 	db := c.db.Where("token = ?", token).Take(&cred)
 	if db.Error != nil {
 		if db.Error == gorm.ErrRecordNotFound {
 			return cred, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 		}
+
 		return cred, db.Error
 	}
 
@@ -33,11 +35,13 @@ func (c *CredentialRepository) ByToken(ctx context.Context, token string) (auth.
 
 func (c *CredentialRepository) ByID(ctx context.Context, id int) (auth.Credential, error) {
 	cred := auth.Credential{}
+
 	db := c.db.Where("id = ?", id).Take(&cred)
 	if db.Error != nil {
 		if db.Error == gorm.ErrRecordNotFound {
 			return cred, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 		}
+
 		return cred, db.Error
 	}
 
@@ -46,11 +50,13 @@ func (c *CredentialRepository) ByID(ctx context.Context, id int) (auth.Credentia
 
 func (c *CredentialRepository) ByEmail(ctx context.Context, email string) (auth.Credential, error) {
 	cred := auth.Credential{}
+
 	db := c.db.Where("email = ?", email).Take(&cred)
 	if db.Error != nil {
 		if db.Error == gorm.ErrRecordNotFound {
 			return cred, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 		}
+
 		return cred, db.Error
 	}
 

@@ -4,6 +4,7 @@ import "crypto/rand"
 
 func generateRandomBytes(n int) ([]byte, error) {
 	b := make([]byte, n)
+
 	_, err := rand.Read(b)
 	if err != nil {
 		return nil, err
@@ -23,5 +24,6 @@ func GenerateRandomString(n int) (string, error) {
 	for i, b := range bytes {
 		bytes[i] = letters[b%byte(len(letters))]
 	}
+
 	return string(bytes), nil
 }

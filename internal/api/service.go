@@ -32,11 +32,12 @@ func (c *CredentialService) ByToken(ctx context.Context, token string) (auth.Cre
 }
 
 func (c *CredentialService) Register(ctx context.Context, cred *auth.Credential) error {
-	hash, err := hashAndSalt(cred.Password)
+	var err error
+
+	cred.Password, err = hashAndSalt(cred.Password)
 	if err != nil {
 		return err
 	}
-	cred.Password = hash
 
 	cred.Token, err = c.generatorFn(tokenLength)
 	if err != nil {

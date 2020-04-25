@@ -29,6 +29,7 @@ func (e Error) Error() string {
 	if e.err != nil {
 		return fmt.Sprintf("%s: %s (%s)", e.Code, e.Message, e.err.Error())
 	}
+
 	return fmt.Sprintf("%s %s", e.Code, e.Message)
 }
 
@@ -43,6 +44,7 @@ func ErrorCode(err error) string {
 	if errors.As(err, &e) {
 		return e.Code
 	}
+
 	return "internal"
 }
 
@@ -52,6 +54,7 @@ func ErrorMsg(err error) string {
 	if errors.As(err, &e) {
 		return e.Message
 	}
+
 	return "no message"
 }
 
@@ -72,8 +75,10 @@ func ErrorHas(err error, codes ...string) error {
 				return e
 			}
 		}
+
 		return ErrorHas(e.Unwrap(), codes...)
 	}
+
 	return nil
 }
 

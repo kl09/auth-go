@@ -25,6 +25,7 @@ func (c *Client) Open(source string) error {
 	var err error
 
 	c.logger.Debug().Msg("connecting to db")
+
 	c.db, err = gorm.Open("postgres", source)
 	if err != nil {
 		c.logger.Err(err).Msg("sql open failed")
@@ -36,6 +37,7 @@ func (c *Client) Open(source string) error {
 		c.logger.Err(err).Msg("sql ping failed")
 		return err
 	}
+
 	c.logger.Debug().Msg("connected to db")
 
 	c.db.SingularTable(true)

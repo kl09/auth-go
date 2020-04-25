@@ -59,6 +59,7 @@ func (r *Router) registerUser(c echo.Context) error {
 		Email:    request.Email,
 		Password: request.Password,
 	}
+
 	err = r.credService.Register(c.Request().Context(), &cred)
 	if err != nil {
 		return err
