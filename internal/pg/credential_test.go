@@ -14,10 +14,7 @@ import (
 )
 
 func TestCredentialRepository_Create(t *testing.T) {
-	setUp(t)
-
-	c := pg.NewClient()
-	require.Nil(t, c.Open(PostgresTest))
+	c := setUp(t)
 	defer c.Close()
 
 	r := pg.NewCredentialRepository(c)
@@ -48,10 +45,7 @@ func TestCredentialRepository_Create(t *testing.T) {
 }
 
 func TestCredentialRepository_ByToken(t *testing.T) {
-	setUp(t)
-
-	c := pg.NewClient()
-	require.Nil(t, c.Open(PostgresTest))
+	c := setUp(t)
 	defer c.Close()
 
 	r := pg.NewCredentialRepository(c)
@@ -104,10 +98,7 @@ func TestCredentialRepository_ByToken(t *testing.T) {
 }
 
 func TestCredentialRepository_ByID(t *testing.T) {
-	setUp(t)
-
-	c := pg.NewClient()
-	require.Nil(t, c.Open(PostgresTest))
+	c := setUp(t)
 	defer c.Close()
 
 	r := pg.NewCredentialRepository(c)
@@ -158,10 +149,7 @@ func TestCredentialRepository_ByID(t *testing.T) {
 }
 
 func TestCredentialRepository_ByEmail(t *testing.T) {
-	setUp(t)
-
-	c := pg.NewClient()
-	require.Nil(t, c.Open(PostgresTest))
+	c := setUp(t)
 	defer c.Close()
 
 	r := pg.NewCredentialRepository(c)

@@ -25,10 +25,21 @@ var (
 		PostgresUser, PostgresPassword, PostgresHost, PostgresPort, PostgresDBTest, PostgresConnectTimeout)
 )
 
-func setUp(t *testing.T) {
+func setUp(t *testing.T) *pg.Client {
 	t.Helper()
 
 	clearSQLDb(t)
+
+	client := pg.NewClient()
+	if err := client.Open(PostgresTest); err != nil {
+		t.Fatal(err)
+	}
+	// Create schema
+	if err := client.Schema(); err != nil {
+		t.Fatal(err)
+	}
+
+	return client
 }
 
 func clearSQLDb(t *testing.T) {
@@ -46,16 +57,6 @@ func clearSQLDb(t *testing.T) {
 	}
 	_, err = pool.Exec("CREATE DATABASE " + PostgresDBTest)
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create schema
-	c := pg.NewClient()
-	if err = c.Open(PostgresTest); err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = c.Close() }()
-	if err = c.Schema(); err != nil {
 		t.Fatal(err)
 	}
 }
