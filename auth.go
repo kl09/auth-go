@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+//go:generate moq -pkg mock -out internal/mock/credential.go . CredentialRepository
+
 // Credential is a user's credential.
 type Credential struct {
 	ID                       int

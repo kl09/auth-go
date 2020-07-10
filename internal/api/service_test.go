@@ -19,12 +19,12 @@ func TestCredentialService_Register(t *testing.T) {
 
 	plainPass := cred.Password
 
-	s := NewCredentialService(&mock.CredentialRepository{
-		CreateFn: func(ctx context.Context, c *auth.Credential) error {
+	s := NewCredentialService(&mock.CredentialRepositoryMock{
+		CreateFunc: func(ctx context.Context, c *auth.Credential) error {
 			c.ID = 1
 			return nil
 		},
-		ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+		ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 			return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 		},
 	},
@@ -68,8 +68,8 @@ func TestCredentialService_Auth(t *testing.T) {
 			name:   "success",
 			email:  "example@example.org",
 			passwd: "password_12345_1122",
-			credRep: &mock.CredentialRepository{
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{
 						ID:       1,
 						Password: hash,
@@ -89,8 +89,8 @@ func TestCredentialService_Auth(t *testing.T) {
 			name:   "error - user not found",
 			email:  "example@example.org",
 			passwd: "password_12345_1122",
-			credRep: &mock.CredentialRepository{
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 				},
 			},
@@ -104,8 +104,8 @@ func TestCredentialService_Auth(t *testing.T) {
 			name:   "error - different passwords",
 			email:  "example@example.org",
 			passwd: "12345",
-			credRep: &mock.CredentialRepository{
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{
 						ID:       1,
 						Password: hash,

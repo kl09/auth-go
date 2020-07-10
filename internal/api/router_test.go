@@ -37,8 +37,8 @@ func TestUser_ByToken(t *testing.T) {
 			token:      "12345",
 			wantResp:   `{"id":1,"token":"token","email":"example@example.org","email_tmp":"","email_verified":false,"created_at":"2020-04-15T10:11:12Z","updated_at":"2020-04-15T10:11:12Z"}` + "\n",
 			wantStatus: http.StatusOK,
-			credRep: &mock.CredentialRepository{
-				ByTokenFn: func(ctx context.Context, token string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByTokenFunc: func(ctx context.Context, token string) (auth.Credential, error) {
 					return auth.Credential{
 						ID:        1,
 						Password:  "12345",
@@ -55,8 +55,8 @@ func TestUser_ByToken(t *testing.T) {
 			token:      "12345",
 			wantResp:   `{"error":{"code":"credential_not_found","message":"Credential not found"}}` + "\n",
 			wantStatus: http.StatusNotFound,
-			credRep: &mock.CredentialRepository{
-				ByTokenFn: func(ctx context.Context, token string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByTokenFunc: func(ctx context.Context, token string) (auth.Credential, error) {
 					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 				},
 			},
@@ -116,12 +116,12 @@ func TestUser_Register(t *testing.T) {
 			requestBody: `{"email":"example@example.org","password":"66554433"}`,
 			wantResp:    `{"id":1,"token":"1234abcd","email":"example@example.org","email_tmp":"","email_verified":false,"created_at":"2020-04-15T10:11:12Z","updated_at":"2020-04-15T10:11:12Z"}` + "\n",
 			wantStatus:  http.StatusOK,
-			credRep: &mock.CredentialRepository{
-				CreateFn: func(ctx context.Context, c *auth.Credential) error {
+			credRep: &mock.CredentialRepositoryMock{
+				CreateFunc: func(ctx context.Context, c *auth.Credential) error {
 					c.ID = 1
 					return nil
 				},
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 				},
 			},
@@ -131,11 +131,11 @@ func TestUser_Register(t *testing.T) {
 			requestBody: `{"email":"example@example.org","password":"66554433"}`,
 			wantResp:    `{"error":{"code":"internal","message":"no message"}}` + "\n",
 			wantStatus:  http.StatusInternalServerError,
-			credRep: &mock.CredentialRepository{
-				CreateFn: func(ctx context.Context, c *auth.Credential) error {
+			credRep: &mock.CredentialRepositoryMock{
+				CreateFunc: func(ctx context.Context, c *auth.Credential) error {
 					return errors.New("some error")
 				},
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 				},
 			},
@@ -145,12 +145,12 @@ func TestUser_Register(t *testing.T) {
 			requestBody: `{"email":"example@example.org","password":"66554433"}`,
 			wantResp:    `{"error":{"code":"email_already_exists","message":"User with this email already exists."}}` + "\n",
 			wantStatus:  http.StatusInternalServerError,
-			credRep: &mock.CredentialRepository{
-				CreateFn: func(ctx context.Context, c *auth.Credential) error {
+			credRep: &mock.CredentialRepositoryMock{
+				CreateFunc: func(ctx context.Context, c *auth.Credential) error {
 					t.Fatal("method shouldn't be called")
 					return nil
 				},
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{}, nil
 				},
 			},
@@ -222,8 +222,8 @@ func TestUser_Auth(t *testing.T) {
 			requestBody: `{"email":"example@example.org","password":"66554433"}`,
 			wantResp:    `{"id":1,"token":"token","email":"example@example.org","email_tmp":"","email_verified":false,"created_at":"2020-04-15T10:11:12Z","updated_at":"2020-04-15T10:11:12Z"}` + "\n",
 			wantStatus:  http.StatusOK,
-			credRep: &mock.CredentialRepository{
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{
 						ID:        1,
 						Password:  hash,
@@ -240,8 +240,8 @@ func TestUser_Auth(t *testing.T) {
 			requestBody: `{"email":"example@example.org","password":"66554433"}`,
 			wantResp:    `{"error":{"code":"auth_failed","message":"Auth failed"}}` + "\n",
 			wantStatus:  http.StatusUnauthorized,
-			credRep: &mock.CredentialRepository{
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{
 						ID:        1,
 						Password:  "66554433",
@@ -258,8 +258,8 @@ func TestUser_Auth(t *testing.T) {
 			requestBody: `{"email":"example@example.org","password":"66554433"}`,
 			wantResp:    `{"error":{"code":"auth_failed","message":"Auth failed"}}` + "\n",
 			wantStatus:  http.StatusUnauthorized,
-			credRep: &mock.CredentialRepository{
-				ByEmailFn: func(ctx context.Context, email string) (auth.Credential, error) {
+			credRep: &mock.CredentialRepositoryMock{
+				ByEmailFunc: func(ctx context.Context, email string) (auth.Credential, error) {
 					return auth.Credential{}, auth.NewError(auth.ErrCredNotFound, "Credential not found")
 				},
 			},
