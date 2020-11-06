@@ -9,13 +9,6 @@ import (
 	"sync"
 )
 
-var (
-	lockCredentialRepositoryMockByEmail sync.RWMutex
-	lockCredentialRepositoryMockByID    sync.RWMutex
-	lockCredentialRepositoryMockByToken sync.RWMutex
-	lockCredentialRepositoryMockCreate  sync.RWMutex
-)
-
 // Ensure, that CredentialRepositoryMock does implement auth.CredentialRepository.
 // If this is not the case, regenerate this file with moq.
 var _ auth.CredentialRepository = &CredentialRepositoryMock{}
@@ -88,6 +81,10 @@ type CredentialRepositoryMock struct {
 			C *auth.Credential
 		}
 	}
+	lockByEmail sync.RWMutex
+	lockByID    sync.RWMutex
+	lockByToken sync.RWMutex
+	lockCreate  sync.RWMutex
 }
 
 // ByEmail calls ByEmailFunc.
@@ -102,9 +99,9 @@ func (mock *CredentialRepositoryMock) ByEmail(ctx context.Context, email string)
 		Ctx:   ctx,
 		Email: email,
 	}
-	lockCredentialRepositoryMockByEmail.Lock()
+	mock.lockByEmail.Lock()
 	mock.calls.ByEmail = append(mock.calls.ByEmail, callInfo)
-	lockCredentialRepositoryMockByEmail.Unlock()
+	mock.lockByEmail.Unlock()
 	return mock.ByEmailFunc(ctx, email)
 }
 
@@ -119,9 +116,9 @@ func (mock *CredentialRepositoryMock) ByEmailCalls() []struct {
 		Ctx   context.Context
 		Email string
 	}
-	lockCredentialRepositoryMockByEmail.RLock()
+	mock.lockByEmail.RLock()
 	calls = mock.calls.ByEmail
-	lockCredentialRepositoryMockByEmail.RUnlock()
+	mock.lockByEmail.RUnlock()
 	return calls
 }
 
@@ -137,9 +134,9 @@ func (mock *CredentialRepositoryMock) ByID(ctx context.Context, id int) (auth.Cr
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockCredentialRepositoryMockByID.Lock()
+	mock.lockByID.Lock()
 	mock.calls.ByID = append(mock.calls.ByID, callInfo)
-	lockCredentialRepositoryMockByID.Unlock()
+	mock.lockByID.Unlock()
 	return mock.ByIDFunc(ctx, id)
 }
 
@@ -154,9 +151,9 @@ func (mock *CredentialRepositoryMock) ByIDCalls() []struct {
 		Ctx context.Context
 		ID  int
 	}
-	lockCredentialRepositoryMockByID.RLock()
+	mock.lockByID.RLock()
 	calls = mock.calls.ByID
-	lockCredentialRepositoryMockByID.RUnlock()
+	mock.lockByID.RUnlock()
 	return calls
 }
 
@@ -172,9 +169,9 @@ func (mock *CredentialRepositoryMock) ByToken(ctx context.Context, token string)
 		Ctx:   ctx,
 		Token: token,
 	}
-	lockCredentialRepositoryMockByToken.Lock()
+	mock.lockByToken.Lock()
 	mock.calls.ByToken = append(mock.calls.ByToken, callInfo)
-	lockCredentialRepositoryMockByToken.Unlock()
+	mock.lockByToken.Unlock()
 	return mock.ByTokenFunc(ctx, token)
 }
 
@@ -189,9 +186,9 @@ func (mock *CredentialRepositoryMock) ByTokenCalls() []struct {
 		Ctx   context.Context
 		Token string
 	}
-	lockCredentialRepositoryMockByToken.RLock()
+	mock.lockByToken.RLock()
 	calls = mock.calls.ByToken
-	lockCredentialRepositoryMockByToken.RUnlock()
+	mock.lockByToken.RUnlock()
 	return calls
 }
 
@@ -207,9 +204,9 @@ func (mock *CredentialRepositoryMock) Create(ctx context.Context, c *auth.Creden
 		Ctx: ctx,
 		C:   c,
 	}
-	lockCredentialRepositoryMockCreate.Lock()
+	mock.lockCreate.Lock()
 	mock.calls.Create = append(mock.calls.Create, callInfo)
-	lockCredentialRepositoryMockCreate.Unlock()
+	mock.lockCreate.Unlock()
 	return mock.CreateFunc(ctx, c)
 }
 
@@ -224,8 +221,8 @@ func (mock *CredentialRepositoryMock) CreateCalls() []struct {
 		Ctx context.Context
 		C   *auth.Credential
 	}
-	lockCredentialRepositoryMockCreate.RLock()
+	mock.lockCreate.RLock()
 	calls = mock.calls.Create
-	lockCredentialRepositoryMockCreate.RUnlock()
+	mock.lockCreate.RUnlock()
 	return calls
 }

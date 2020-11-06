@@ -9,6 +9,9 @@ lint:
 build:
 	go build ./cmd/api/
 
+install_moq:
+	go get github.com/matryer/moq
+
 up:
 	docker-compose -f docker/docker-compose.yml up -d --build
 
